@@ -1,0 +1,181 @@
+class App extends React.Component {
+   constructor(props) {
+      super(props);
+      // Temporarily store recipe in memory before
+      // pushing recipe object into the value array 
+      // Otherwise, pushing recipe object in setTitle
+      // creates a recipe on every keystroke
+      this.state = {memory: 
+                       {title: null, 
+                        ingredients: null},
+                    value: null,
+                    flip: '',
+                    recipeIndex: null,
+                   };
+      this.store = this.store.bind(this);
+      this.retrieve = this.retrieve.bind(this);
+      this.setTitle = this.setTitle.bind(this);
+      this.setIngredients = this.setIngredients.bind(this);
+      this.flip = this.flip.bind(this);
+      this.deleteRecipe = this.deleteRecipe.bind(this);
+      this.editRecipe = this.editRecipe.bind(this);
+      this.clearMemory = this.clearMemory.bind(this);
+      this.pushMemoryToValue= this.pushMemoryToValue.bind(this);
+      this.cancel = this.cancel.bind(this);
+   }
+   
+   prefix = '_hongyi0220_recipes';
+
+   store() {
+      window.localStorage.setItem(this.prefix, JSON.stringify(this.state.value));
+      this.clearMemory();
+      this.setState({ flip: '' });
+   }
+   pushMemoryToValue() {
+      let state = {...this.state};
+      const index = state.recipeIndex;
+      if (state.memory.title && state.memory.ingredients && index) {
+         state.value.splice(index, 1, this.state.memory);
+         this.setState({ recipeIndex: null });
+      }
+      else if (state.memory.title && state.memory.ingredients) {
+         state.value.push(this.state.memory);
+      }
+      this.setState({ state });
+      this.store();
+   }
+   clearMemory() {
+      let memory = {...this.state.memory};
+      memory.title = '';
+      memory.ingredients = '';
+      this.setState({ memory });
+   }
+   retrieve() {
+      return window.localStorage.getItem(this.prefix);
+   }
+
+   setTitle(e) {
+      let memory = {...this.state.memory};
+      memory.title = e.target.value;
+      this.setState({ memory });
+   }
+
+   setIngredients(e) {
+      let memory = {...this.state.memory};
+      memory.ingredients = e.target.value.split(/,/);
+      this.setState({ memory });
+   }
+   // This enables flip motion defined in CSS by adding .flip
+   flip() {
+      let toggleFlip = this.state.flip ? '' : ' flip';
+      this.setState({flip: toggleFlip });
+   }
+   cancel() {
+      this.clearMemory();
+      this.flip();
+      this.setState({ recipeIndex: null });
+   }
+   deleteRecipe(e) {
+      let state = {...this.state};
+      const recipeIndex = e.target.id;
+      state.value.splice(recipeIndex, 1);
+      this.setState({ state });
+      this.store();
+   }   
+
+   editRecipe(e) {
+      let state = {...this.state};
+      const index = e.target.id;
+      const title = state.value[index].title;
+      const ingredients = state.value[index].ingredients;
+      state.memory.title = title;
+      state.memory.ingredients = ingredients;
+      this.setState({ recipeIndex: index });
+      this.flip();
+   }
+
+// This gets recipes array from localStorage and
+// set it as state's value
+   componentWillMount() {
+      if (!this.retrieve()) {
+         this.setState({value: [{"title":"Braised pork","ingredients":["1 lb pork belly"," pinch salt"," 1 tsp black pepper"]},{"title":"Blueberry muffin","ingredients":["4 cups flour"," 1 cup fresh blueberry"," 1/4 cup sugar"]},{"title":"Apple pie","ingredients":["half dozen fresh apples"," 1 cup sugar"," lots of love!\n"]}]});
+      } else this.setState({value: JSON.parse(this.retrieve())});
+   }
+
+   render() {
+      const backProps = { pushMemory: this.pushMemoryToValue, setTitle: this.setTitle, setIngredients: this.setIngredients };
+      return (
+         <div className={'app-container' + this.state.flip}>
+            <div className='app-flipper'>
+               <div className='app-front'>
+                  <Head  flip={this.flip} />
+                  <Cards value={this.state.value} deleteRecipe={this.deleteRecipe} editRecipe={this.editRecipe}/>
+               </div>
+               <div className='app-back'>
+                  <Back addRecipe={backProps} cancel={this.cancel} memory={this.state.memory} isRecipeIndex={this.state.recipeIndex}/>
+               </div>
+            </div>
+         </div>
+      );
+   }
+}
+
+const Head = (props) => {
+   return (
+      <div id='head'>
+         <span>Recipes</span>&nbsp;&nbsp;
+         <i id='addRecipe' onClick={props.flip} className="fa fa-plus" aria-hidden="true"></i>
+      </div>
+   ); 
+}
+
+const Cards = (props) => {
+   const colors = ['gold', 'sandybrown', 'coral', 'tomato'];
+   if (!props.value) return <p>'Loading Recipes..';</p>
+   return (
+      <div>
+      {props.value.map(( recipe, i ) => 
+          <div className='card-container' id={'card-container' + i}>
+             <div className='card-flipper'>
+                <div className='card-front' id={'card-front' + colors[i % colors.length]}>
+                   <span>{recipe.title}</span>&nbsp;&nbsp;
+                   <i id={i} className="fa fa-trash-o" aria-hidden="true" onClick={props.deleteRecipe}></i>&nbsp;&nbsp;
+                   <i id={i} className="fa fa-pencil" aria-hidden="true" onClick={props.editRecipe}></i>
+                </div>
+                <div className='card-back' id={'card-back' + colors[i % colors.length]}>
+                   {recipe.ingredients
+                      .map((ingredient, i) =>
+                           <div className='ingredient'>
+                              <input type='checkbox' 
+                                 id={'checkBox' + i}/>
+                            <label for={'checkBox' + i}>
+                               {ingredient}</label>
+                           </div>)
+                   }
+                </div>
+             </div>
+          </div>)
+      }
+   </div>);
+}
+
+const Back = (props) => {
+   const isRecipeIndex = props.isRecipeIndex;
+   return (
+      <div className='back'>
+         <input onChange={props.addRecipe.setTitle} type='text' placeholder='Recipe name' value={props.memory.title}/>
+         <textarea onChange={props.addRecipe.setIngredients} placeholder='Add ingredients seperated by commas( , )' value={props.memory.ingredients}></textarea>
+         <div onClick={props.addRecipe.pushMemory} className='button'>
+            <span>{isRecipeIndex ? 'Edit Recipe' : 'Add Recipe'}</span>&nbsp;&nbsp;  
+         </div>
+         <div className='x-container'>
+         <i className="fa fa-times" aria-hidden="true" onClick={props.cancel}></i>
+         </div>
+      </div>
+   ); 
+}
+
+ReactDOM.render(
+   <App />,
+   document.getElementById('app')
+);

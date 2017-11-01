@@ -1,0 +1,176 @@
+$appHeight: 540px;
+$appWidth: 400px;
+@mixin appSize($h: $appHeight, $w: $appWidth) {
+   height: $h;
+   width: $w;
+}
+@mixin cardSize($h: 100px, $w: 400px) {
+   height: $h;
+   width: $w;
+}
+$headHeight: 60px;
+$mellowGray: rgba(185,175,176,1);
+$purpleBlack: rgb(38,26,27);
+$bgGradient: linear-gradient(to right bottom, rgb(255,132,81), rgb(105,39,53));
+* {
+   box-sizing: border-box;
+   font-family: 'Raleway', sans-serif;
+}
+html, body {
+   margin: 0;
+   min-height: 100%;
+   overflow: hidden;
+}
+body {
+   background: no-repeat $bgGradient;
+}
+.app-container {
+   margin: 5% auto;
+   box-shadow: 0 0 2em black;
+   @include appSize;
+   i {
+      cursor: pointer;
+      cursor: hand;
+   }
+   &.flip .app-flipper {
+      transform: rotateY(180deg);
+      transition: 0.01s;
+      transform-style: preserve-3d;
+   }
+   .app-front, .app-back {
+      overflow: scroll;
+      @include appSize;
+      position: absolute;
+      backface-visibility: hidden;
+      #head {
+         width: $appWidth;
+         height: $headHeight;
+         background-color: $purpleBlack;
+         position: fixed;
+         color: $mellowGray;
+         z-index: 2;
+         text-align: center;
+         backface-visibility: hidden;
+         font-size: 1.5em;
+         span {
+            line-height: $headHeight;
+         }
+      }
+   }
+   .app-front {
+      #card-container0 {
+         margin-top: $headHeight;
+      }
+      .card-container {
+         .card-flipper {
+            .card-front {
+               text-align: center;
+               padding: 0.5em 0;
+               font-size: 1.5em;
+               i {
+                  &:hover {
+                     opacity: 0.8;
+                  }
+               }
+            }
+            .card-back {
+               border-top: 1px dashed black;
+               padding: 1em 0 1em 1em;
+               .ingredient {
+                  margin: 0.5em 0;
+                  font-size: 1.1em;
+               }
+            }
+         }
+      }
+   }
+   .app-back {
+      transform: rotateY(180deg);
+      .back {
+         text-align: center;
+         margin-top: 0;
+         input[type=text] {
+            display: block;
+            width: $appWidth;
+            height: 50px;
+            border: none;
+            border-bottom: 2px dashed $mellowGray;
+            outline: none;
+            font-size: 1.3em;
+            background: $purpleBlack;
+            color: yellow;
+            &::placeholder {
+               color: yellow;
+               opacity: 0.8;
+            }
+         }
+         textarea {
+            width: $appWidth;
+            height: $appHeight - 100px;
+            display: block;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 1.2em;
+            background: $purpleBlack;
+            color: yellow;
+            &::placeholder {
+               color: yellow;
+               opacity: 0.8;
+            }
+         }
+         .button {
+            background-color: yellow;
+            height: 50px;
+            width: 350px;
+            float: left;
+            cursor: pointer;
+            cursor: hand;
+            text-align: center;
+            span {
+               line-height: 50px;
+               font-size: 1.5em;
+            }
+         }
+         .x-container {
+            display: inline-block;
+            height: 50px;
+            width: 50px;
+            background: yellow;
+            line-height: 50px;
+            i {
+               font-size: 1.5em;
+               &:hover {
+                  opacity: 0.8;
+               }
+            }
+         }
+      }
+   }
+}
+// $lemonadeYellow: rgb(255,226,122);
+// $gentleOrange: rgb(254,184,95);
+// $bloodOrange: rgb(253,135,91);
+// $sunsetRed: rgb(253,88,91);
+$colors: (color1: gold, color2: sandybrown, color3: coral, color4: tomato);
+@each $key, $color in $colors {
+   #card-front#{$color} {
+      background-color: $color;
+   }
+}
+@each $key, $color in $colors {
+   #card-back#{$color} {
+      background-color: $color;
+   }
+}
+footer {
+   text-align: center;
+   color: $mellowGray;
+}
+
+@media only screen and (max-width: 360px) {
+   .app-container {
+      height: 540px;
+      width: 320px;
+   }
+}
